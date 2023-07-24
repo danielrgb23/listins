@@ -12,10 +12,10 @@ void main() async {
   );
   runApp(const MyApp());
 
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-  firestore.collection("So testando").doc("estou testando").set({
-    "funcionou": true,
-  });
+  // FirebaseFirestore firestore = FirebaseFirestore.instance;
+  // firestore.collection("So testando").doc("estou testando").set({
+  //   "funcionou": true,
+  // });
 }
 
 class MyApp extends StatelessWidget {
