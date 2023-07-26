@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:listin/firestore/models/fireStoreAnalytics.dart';
+import 'package:listin/firestore_produtos/presentation/produto_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../models/listin.dart';
 
@@ -70,6 +71,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         remove(model);
                       },
                       child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProdutoScreen(listin: model)));
+                        },
                         onLongPress: () {
                           showFormModal(model: model);
                         },

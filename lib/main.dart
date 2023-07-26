@@ -11,11 +11,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const MyApp());
-
-  // FirebaseFirestore firestore = FirebaseFirestore.instance;
-  // firestore.collection("So testando").doc("estou testando").set({
-  //   "funcionou": true,
-  // });
 }
 
 class MyApp extends StatelessWidget {
@@ -27,7 +22,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
@@ -35,5 +29,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
