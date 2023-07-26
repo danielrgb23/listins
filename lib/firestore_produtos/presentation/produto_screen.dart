@@ -35,19 +35,31 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
       appBar: AppBar(
         title: Text(widget.listin.name),
         actions: [
-          PopupMenuButton(itemBuilder: (context) {
-            return [
-              const PopupMenuItem(
-                  value: OrdemProduto.name, child: Text('Ordernar por nome')),
-              const PopupMenuItem(
-                  value: OrdemProduto.amount,
-                  child: Text('Ordernar por quantidade')),
-              const PopupMenuItem(
-                value: OrdemProduto.price,
-                child: Text('Ordernar por preço'),
-              ),
-            ];
-          })
+          PopupMenuButton(
+            itemBuilder: (context) {
+              return [
+                const PopupMenuItem(
+                    value: OrdemProduto.name, child: Text('Ordernar por nome')),
+                const PopupMenuItem(
+                    value: OrdemProduto.amount,
+                    child: Text('Ordernar por quantidade')),
+                const PopupMenuItem(
+                  value: OrdemProduto.price,
+                  child: Text('Ordernar por preço'),
+                ),
+              ];
+            },
+            onSelected: (value) {
+              setState(() {
+                if (ordem == value) {
+                  isDecrescente = !isDecrescente;
+                } else {
+                  ordem = value;
+                  isDecrescente = false;
+                }
+              });
+            },
+          )
         ],
       ),
       floatingActionButton: FloatingActionButton(
