@@ -88,12 +88,12 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
-                children: const [
+                children: [
                   Text(
-                    "R\$${0}",
-                    style: TextStyle(fontSize: 42),
+                    "R\$${calcularPrecoPegos().toStringAsFixed(2)}",
+                    style: const TextStyle(fontSize: 42),
                   ),
-                  Text(
+                  const Text(
                     "total previsto para essa compra",
                     style: TextStyle(fontStyle: FontStyle.italic),
                   ),
@@ -367,5 +367,17 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         .collection('produtos')
         .doc(produto.id)
         .delete();
+  }
+
+  double calcularPrecoPegos() {
+    double total = 0;
+
+    for (Produto produto in listaProdutosPegos) {
+      if (produto.amount != null && produto.price != null) {
+        total += (produto.amount! * produto.price!);
+      }
+    }
+
+    return total;
   }
 }
