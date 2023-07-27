@@ -26,6 +26,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   @override
   void initState() {
     refresh();
+    setupListeners();
     super.initState();
   }
 
@@ -288,15 +289,17 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
     );
   }
 
-  refresh() async {
+  refresh({QuerySnapshot<Map<String, dynamic>>? snapshot}) async {
     List<Produto> temp = [];
-    QuerySnapshot<Map<String, dynamic>> snapshot = await firestore
+
+    snapshot ??= await firestore
         .collection('listins')
         .doc(widget.listin.id)
         .collection('produtos')
         // .where('isComprado', isEqualTo: isComprado)
         .orderBy(ordem.name, descending: isDecrescente)
         .get();
+     
 
     for (var doc in snapshot.docs) {
       Produto produto = Produto.fromMap(doc.data());
@@ -335,5 +338,19 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         .update({"isComprado": produto.isComprado});
 
     refresh();
+  }
+
+  setupListeners() {
+    firestore
+        .collection('listins')
+        .doc(widget.listin.id)
+        .collection('produtos')
+        .orderBy(ordem.name, descending: isDecrescente)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        refresh(snapshot: snapshot);
+      },
+    );
   }
 }
