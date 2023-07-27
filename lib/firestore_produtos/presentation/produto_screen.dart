@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:listin/firestore_produtos/helpers/enum_order.dart';
@@ -23,10 +25,18 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   OrdemProduto ordem = OrdemProduto.name;
   bool isDecrescente = false;
 
+  late StreamSubscription listener;
+
   @override
   void initState() {
     setupListeners();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    listener.cancel();
+    super.dispose();
   }
 
   @override
@@ -332,11 +342,10 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         .collection('produtos')
         .doc(produto.id)
         .update({"isComprado": produto.isComprado});
-
   }
 
   setupListeners() {
-    firestore
+    listener = firestore
         .collection('listins')
         .doc(widget.listin.id)
         .collection('produtos')
