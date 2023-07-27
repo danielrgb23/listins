@@ -25,7 +25,6 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
 
   @override
   void initState() {
-    refresh();
     setupListeners();
     super.initState();
   }
@@ -272,8 +271,6 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                           .collection("produtos")
                           .doc(produto.id)
                           .set(produto.toMap());
-                      // Atualizar a lista
-                      refresh();
 
                       // Fechar o Modal
                       Navigator.pop(context);
@@ -299,7 +296,6 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         // .where('isComprado', isEqualTo: isComprado)
         .orderBy(ordem.name, descending: isDecrescente)
         .get();
-     
 
     for (var doc in snapshot.docs) {
       Produto produto = Produto.fromMap(doc.data());
@@ -337,7 +333,6 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         .doc(produto.id)
         .update({"isComprado": produto.isComprado});
 
-    refresh();
   }
 
   setupListeners() {
