@@ -120,6 +120,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                   isComprado: false,
                   showModal: showFormModal,
                   iconClick: alternarComprado,
+                  trailClick: removerProduto,
                 );
               }),
             ),
@@ -143,6 +144,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                   isComprado: true,
                   showModal: showFormModal,
                   iconClick: alternarComprado,
+                  trailClick: removerProduto,
                 );
               }),
             ),
@@ -356,5 +358,14 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         refresh(snapshot: snapshot);
       },
     );
+  }
+
+  removerProduto(Produto produto) async {
+    await firestore
+        .collection('listins')
+        .doc(widget.listin.id)
+        .collection('produtos')
+        .doc(produto.id)
+        .delete();
   }
 }
