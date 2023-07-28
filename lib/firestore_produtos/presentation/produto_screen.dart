@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:listin/firestore_produtos/helpers/enum_order.dart';
+import 'package:listin/firestore_produtos/services/produto_service.dart';
 import 'package:uuid/uuid.dart';
 import '../../firestore/models/listin.dart';
 import '../model/produto.dart';
@@ -20,7 +21,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   List<Produto> listaProdutosPlanejados = [];
   List<Produto> listaProdutosPegos = [];
 
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  ProdutoService produtoService = ProdutoService();
 
   OrdemProduto ordem = OrdemProduto.name;
   bool isDecrescente = false;
@@ -49,13 +50,16 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
             itemBuilder: (context) {
               return [
                 const PopupMenuItem(
-                    value: OrdemProduto.name, child: Text('Ordernar por nome')),
+                  value: OrdemProduto.name,
+                  child: Text("Ordenar por nome"),
+                ),
                 const PopupMenuItem(
-                    value: OrdemProduto.amount,
-                    child: Text('Ordernar por quantidade')),
+                  value: OrdemProduto.amount,
+                  child: Text("Ordenar por quantidade"),
+                ),
                 const PopupMenuItem(
                   value: OrdemProduto.price,
-                  child: Text('Ordernar por preço'),
+                  child: Text("Ordenar por preço"),
                 ),
               ];
             },
@@ -67,8 +71,8 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                   ordem = value;
                   isDecrescente = false;
                 }
-                refresh();
               });
+              refresh();
             },
           )
         ],
@@ -116,10 +120,11 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
               children: List.generate(listaProdutosPlanejados.length, (index) {
                 Produto produto = listaProdutosPlanejados[index];
                 return ListTileProduto(
+                  listinId: widget.listin.id,
                   produto: produto,
                   isComprado: false,
                   showModal: showFormModal,
-                  iconClick: alternarComprado,
+                  iconClick: produtoService.alternarComprado,
                   trailClick: removerProduto,
                 );
               }),
@@ -140,10 +145,11 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
               children: List.generate(listaProdutosPegos.length, (index) {
                 Produto produto = listaProdutosPegos[index];
                 return ListTileProduto(
+                  listinId: widget.listin.id,
                   produto: produto,
                   isComprado: true,
                   showModal: showFormModal,
-                  iconClick: alternarComprado,
+                  iconClick: produtoService.alternarComprado,
                   trailClick: removerProduto,
                 );
               }),
@@ -277,12 +283,10 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                       }
 
                       // Salvar no Firestore
-                      firestore
-                          .collection('listins')
-                          .doc(widget.listin.id)
-                          .collection("produtos")
-                          .doc(produto.id)
-                          .set(produto.toMap());
+                      produtoService.adicionarProduto(
+                        listinId: widget.listin.id,
+                        produto: produto,
+                      );
 
                       // Fechar o Modal
                       Navigator.pop(context);
@@ -299,22 +303,17 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   }
 
   refresh({QuerySnapshot<Map<String, dynamic>>? snapshot}) async {
-    List<Produto> temp = [];
+    List<Produto> produtosResgatados = await produtoService.lerProdutos(
+        isDecrescente: isDecrescente,
+        listinId: widget.listin.id,
+        ordem: ordem,
+        snapshot: snapshot);
 
-    snapshot ??= await firestore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        // .where('isComprado', isEqualTo: isComprado)
-        .orderBy(ordem.name, descending: isDecrescente)
-        .get();
-
-    for (var doc in snapshot.docs) {
-      Produto produto = Produto.fromMap(doc.data());
-      temp.add(produto);
+    if (snapshot != null) {
+      verificarAlteracao(snapshot);
     }
 
-    filtrarProdutos(temp);
+    filtrarProdutos(produtosResgatados);
   }
 
   filtrarProdutos(List<Produto> listaProdutos) {
@@ -335,49 +334,59 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
     });
   }
 
-  alternarComprado(Produto produto) async {
-    produto.isComprado = !produto.isComprado;
-
-    await firestore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .doc(produto.id)
-        .update({"isComprado": produto.isComprado});
-  }
-
   setupListeners() {
-    listener = firestore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .orderBy(ordem.name, descending: isDecrescente)
-        .snapshots()
-        .listen(
-      (snapshot) {
-        refresh(snapshot: snapshot);
-      },
-    );
+    listener = produtoService.conectarStream(
+        onChange: refresh,
+        listinId: widget.listin.id,
+        ordem: ordem,
+        isDecrescente: isDecrescente);
   }
 
   removerProduto(Produto produto) async {
-    await firestore
-        .collection('listins')
-        .doc(widget.listin.id)
-        .collection('produtos')
-        .doc(produto.id)
-        .delete();
+    await produtoService.removerProduto(
+      produto: produto,
+      listinId: widget.listin.id,
+    );
   }
 
   double calcularPrecoPegos() {
     double total = 0;
-
     for (Produto produto in listaProdutosPegos) {
       if (produto.amount != null && produto.price != null) {
         total += (produto.amount! * produto.price!);
       }
     }
-
     return total;
+  }
+
+  verificarAlteracao(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (snapshot.docChanges.length == 1) {
+      for (DocumentChange docChange in snapshot.docChanges) {
+        String tipo = "";
+        Color cor = Colors.black;
+        switch (docChange.type) {
+          case DocumentChangeType.added:
+            tipo = "Novo Produto";
+            cor = Colors.green;
+            break;
+          case DocumentChangeType.modified:
+            tipo = "Produto alterado";
+            cor = Colors.orange;
+            break;
+          case DocumentChangeType.removed:
+            tipo = "Produto removido";
+            cor = Colors.red;
+            break;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: cor,
+            content: Text(
+              "$tipo: ${Produto.fromMap(docChange.doc.data() as Map<String, dynamic>).name}",
+            ),
+          ),
+        );
+      }
+    }
   }
 }
