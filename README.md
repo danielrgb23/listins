@@ -33,7 +33,7 @@ Alem de poder compartilhar com os demais que lhe acompanham a esse evento mensal
 
 - Compras compartilhadas (Duas pessoas conseguirem acessar a mesma lista de compras)
 - Login atravez do google
-
+- Adição de listas e listas de produtos offLine
 
 ## Rodando localmente
 
