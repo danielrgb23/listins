@@ -23,6 +23,19 @@ class ListinService {
     return temp;
   }
 
+  Future<List<Listin>> findListins(String idListin) async {
+    List<Listin> temp = [];
+
+    QuerySnapshot<Map<String, dynamic>> snapshot =
+        await firestore.collection('feiras').where('idListin', isEqualTo: idListin).get();
+
+    for (var doc in snapshot.docs) {
+      temp.add(Listin.fromMap(doc.data()));
+    }
+
+    return temp;
+  }
+
   Future<void> removerListin({required String listinId}) async {
     return firestore.collection('feiras').doc(listinId).delete();
   }
