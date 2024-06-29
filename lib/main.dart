@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:listin/_core/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:listin/firestore/screen/home_screen.dart';
-import 'package:listin/firestore_produtos/models/produto.dart';
 import 'package:listin/authentication/screens/auth_screen.dart';
 
 void main() async {
